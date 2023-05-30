@@ -1,10 +1,23 @@
 #[allow(non_upper_case_globals)]
-const k: usize = 20;
+const k: usize = 4;
+#[allow(non_upper_case_globals)]
+const no_of_buckets: usize = 4;
+#[allow(non_upper_case_globals)]
+const own_node_id: &'static str = "0011";
 
 #[derive(Debug, Clone)]
 pub struct Record {
     pub cid: String,
     pub multiaddr: String,
+}
+
+impl Record {
+    pub fn new(cid: &str, multiaddr: &str) -> Record {
+        Record {
+            cid: String::from(cid),
+            multiaddr: String::from(multiaddr),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -13,10 +26,13 @@ pub struct Bucket {
 }
 
 impl Bucket {
-    pub fn new(cid: String, multiaddr: String) -> Bucket {
-        Bucket {
-            records: vec![Record { cid, multiaddr }],
-        }
+    pub fn new() -> Bucket {
+        Bucket { records: vec![] }
+    }
+
+    pub fn add(mut self, cid: &str, multiaddr: &str) -> Self {
+        self.records.push(Record::new(cid, multiaddr));
+        self
     }
 }
 
@@ -26,10 +42,21 @@ pub struct RoutingTable {
 }
 
 impl RoutingTable {
-    pub fn new(key: String, value: String) -> RoutingTable {
-        RoutingTable {
-            buckets: vec![Bucket::new(key, value)],
+    pub fn new() -> RoutingTable {
+        RoutingTable { buckets: vec![] }
+    }
+
+    pub fn add_record(mut self, bucket_id: usize, cid: &str, multiaddr: &str) -> Self {
+        if bucket_id < self.buckets.len() {
+            self.buckets[bucket_id]
+                .records
+                .push(Record::new(cid, multiaddr));
+        } else if bucket_id == self.buckets.len() {
+            self.buckets.push(Bucket::new().add(cid, multiaddr))
+        } else {
+            panic!("bucket_id is out of bucket bounds")
         }
+        self
     }
 
     pub fn normalize(self) -> RoutingTable {
@@ -39,24 +66,24 @@ impl RoutingTable {
         for (index, bucket) in buckets.iter().enumerate() {
             let mut normalized_records = bucket.records.clone();
 
-            let prev_records: Vec<Record> = if index == 0 {
-                vec![]
-            } else {
-                buckets[0..index - 1]
-                    .iter()
-                    .flat_map(|bucket| bucket.records.clone())
-                    .collect()
-            };
+            let prev_records: Vec<Record> = buckets[0..index]
+                .iter()
+                .flat_map(|bucket| bucket.records.clone())
+                .collect();
 
             if bucket.records.len() < k {
-                if prev_records.len() < k - bucket.records.len() {
+                if prev_records.len() <= k - bucket.records.len() {
                     normalized_records.extend(prev_records);
                     if index < buckets.len() - 1 {
                         let mut l = index + 1;
-                        let next_bucket_records = &buckets[l].records;
-                        while normalized_records.len() + next_bucket_records.len() < k {
-                            normalized_records.extend(next_bucket_records.clone());
+                        while l < buckets.len()
+                            && normalized_records.len() + &buckets[l].records.len() <= k
+                        {
+                            normalized_records.extend(buckets[l].records.clone());
                             l += 1;
+                        }
+                        if l < buckets.len() {
+                            let next_bucket_records = &buckets[l].records;
                         }
                         // TODO: This next while loop seems redundant, if we're just selecting randomly k - normalized_records.len() elements
                         //  from the next bucket.
@@ -82,7 +109,53 @@ impl RoutingTable {
 }
 
 fn main() {
-    let rt = RoutingTable::new(String::from("0111"), String::from("12"));
-    let new_rt = rt.normalize();
+    let new_rt = RoutingTable::new()
+        .add_record(0, "0010", "RE 0010")
+        .normalize();
     dbg!("{:?}", new_rt);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::RoutingTable;
+
+    #[test]
+    fn test_previous_buckets_upto_k() {
+        let new_rt = RoutingTable::new()
+            .add_record(0, "0010", "RE")
+            .add_record(1, "0001", "RE")
+            .add_record(1, "0000", "RE")
+            .add_record(2, "0111", "RE")
+            .normalize();
+
+        // assert_eq!(new_rt.buckets[0].records[0].cid, "0010");
+        // assert_eq!(new_rt.buckets[0].records[1].cid, "0001");
+        // assert_eq!(new_rt.buckets[0].records[2].cid, "0000");
+        // assert_eq!(new_rt.buckets[1].records[0].cid, "0001");
+        // assert_eq!(new_rt.buckets[1].records[1].cid, "0000");
+        // assert_eq!(new_rt.buckets[1].records[2].cid, "0010");
+        // assert_eq!(new_rt.buckets[1].records[3].cid, "0111");
+
+        assert_eq!(new_rt.buckets[2].records[0].cid, "0111");
+        assert_eq!(new_rt.buckets[2].records[1].cid, "0010");
+        assert_eq!(new_rt.buckets[2].records[2].cid, "0001");
+        assert_eq!(new_rt.buckets[2].records[3].cid, "0000");
+    }
+
+    #[test]
+    fn test_previous_buckets_less_k_next_buckets_upto_k() {
+        let new_rt = RoutingTable::new()
+            .add_record(0, "0010", "RE")
+            .add_record(1, "0000", "RE")
+            .add_record(2, "0111", "RE")
+            .add_record(2, "0110", "RE")
+            .add_record(3, "1011", "RE")
+            .add_record(3, "1001", "RE")
+            .normalize();
+
+        assert_eq!(new_rt.buckets[1].records[0].cid, "0000");
+        assert_eq!(new_rt.buckets[1].records[1].cid, "0010");
+        assert_eq!(new_rt.buckets[1].records[2].cid, "0111");
+        assert_eq!(new_rt.buckets[1].records[3].cid, "0110");
+    }
 }
