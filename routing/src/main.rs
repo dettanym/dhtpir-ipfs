@@ -1,9 +1,6 @@
-#[allow(non_upper_case_globals)]
-const k: usize = 4;
-#[allow(non_upper_case_globals)]
-const no_of_buckets: usize = 4;
-#[allow(non_upper_case_globals)]
-const own_node_id: &'static str = "0011";
+const K: usize = 4;
+const NO_OF_BUCKETS: usize = 4;
+const OWN_NODE_ID: &'static str = "0011";
 
 #[derive(Debug, Clone)]
 pub struct Record {
@@ -71,13 +68,13 @@ impl RoutingTable {
                 .flat_map(|bucket| bucket.records.clone())
                 .collect();
 
-            if bucket.records.len() < k {
-                if prev_records.len() <= k - bucket.records.len() {
+            if bucket.records.len() < K {
+                if prev_records.len() <= K - bucket.records.len() {
                     normalized_records.extend(prev_records);
                     if index < buckets.len() - 1 {
                         let mut l = index + 1;
                         while l < buckets.len()
-                            && normalized_records.len() + &buckets[l].records.len() <= k
+                            && normalized_records.len() + &buckets[l].records.len() <= K
                         {
                             normalized_records.extend(buckets[l].records.clone());
                             l += 1;
