@@ -89,9 +89,9 @@ fn test_previous_bucket_more_than_k() {
         .add_record(3, "1010", "RE")
         .normalize();
 
-    assert_eq!(new_rt.buckets[1].records[0].cid, "1010");
+    assert_eq!(new_rt.buckets[3].records[0].cid, "1010");
     // last three nodes can be any nodes out of the other 5 in the RT.
-    assert_eq!(new_rt.buckets[1].records[1].cid, "0010");
-    assert_eq!(new_rt.buckets[1].records[2].cid, "0101");
-    assert_eq!(new_rt.buckets[1].records[3].cid, "0110");
+    assert_eq!(new_rt.buckets[3].records[1].cid, "0010");
+    assert_eq!(new_rt.buckets[3].records[2].cid, "0101");
+    assert_eq!(new_rt.buckets[3].records[3].cid, "0110");
 }
