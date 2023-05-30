@@ -37,7 +37,7 @@ impl Bucket {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RoutingTable {
     pub buckets: Vec<Bucket>,
 }
