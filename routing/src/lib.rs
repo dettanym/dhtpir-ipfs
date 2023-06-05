@@ -111,7 +111,7 @@ impl RoutingTable {
                 let records_from_next_buckets = RoutingTable::get_records_from_next_buckets(
                     rand,
                     K - normalized_records_size - records_from_prev_buckets.len(),
-                    &self.buckets[index..self.buckets.len()],
+                    &self.buckets[index + 1..self.buckets.len()],
                 );
 
                 let mut normalized_records = bucket.records.clone();
