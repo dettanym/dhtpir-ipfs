@@ -91,7 +91,14 @@ impl RoutingTable {
         n: usize,
         next_buckets: &[Bucket],
     ) -> Vec<Record> {
-        vec![]
+        next_buckets.iter().fold(vec![], |mut acc, bucket| {
+            if bucket.records.len() + acc.len() <= n {
+                acc.extend(bucket.records.clone());
+            } else {
+                // TODO: Test case 4, 5
+            }
+            acc
+        })
     }
 
     pub fn normalize2(self, rand: &mut SplitMix64) -> RoutingTable {
