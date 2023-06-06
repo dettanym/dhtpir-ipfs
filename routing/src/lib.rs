@@ -19,6 +19,11 @@ impl Record {
             multiaddr: String::from(multiaddr),
         }
     }
+
+    pub fn dist(&self) -> usize {
+        usize::from_str_radix(self.cid.as_str(), 2).unwrap()
+            ^ usize::from_str_radix(OWN_NODE_ID, 2).unwrap()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -60,6 +65,18 @@ impl RoutingTable {
         self
     }
 
+    fn pick_at_random_from_records(
+        rand: &mut SplitMix64,
+        n: usize,
+        records: Vec<Record>,
+    ) -> Vec<Record> {
+        Uniform::from(0..records.len())
+            .sample_iter(rand)
+            .take(n)
+            .map(|i| records[i].clone())
+            .collect()
+    }
+
     fn get_records_from_previous_buckets(
         rand: &mut SplitMix64,
         n: usize,
@@ -79,25 +96,44 @@ impl RoutingTable {
             return prev_records;
         }
 
-        Uniform::from(0..prev_records.len())
-            .sample_iter(rand)
-            .take(n)
-            .map(|i| prev_records[i].clone())
-            .collect()
+        RoutingTable::pick_at_random_from_records(rand, n, prev_records)
     }
 
     fn get_records_from_next_buckets(
         rand: &mut SplitMix64,
         n: usize,
         next_buckets: &[Bucket],
+        own_bucket_max_size: usize,
     ) -> Vec<Record> {
-        next_buckets.iter().fold(vec![], |mut acc, bucket| {
-            if bucket.records.len() + acc.len() <= n {
-                acc.extend(bucket.records.clone());
+        next_buckets.iter().fold(vec![], |mut acc_outer, bucket| {
+            if bucket.records.len() + acc_outer.len() <= n {
+                acc_outer.extend(bucket.records.clone());
             } else {
-                // TODO: Test case 4, 5
+                let mut next_records = bucket.records.clone();
+                next_records.sort_by_key(|record| record.dist());
+                let vec_sub_buckets: Vec<Vec<Record>> = next_records
+                    .chunks(own_bucket_max_size)
+                    .map(|s| s.into())
+                    .collect();
+                let max_len = n - acc_outer.len();
+                let elements_from_sub_buckets =
+                    vec_sub_buckets
+                        .iter()
+                        .fold(vec![], |mut acc_inner, sub_bucket| {
+                            if sub_bucket.len() <= max_len {
+                                acc_inner.extend(sub_bucket.clone());
+                            } else {
+                                acc_inner.extend(RoutingTable::pick_at_random_from_records(
+                                    rand,
+                                    max_len,
+                                    sub_bucket.to_vec(),
+                                ));
+                            }
+                            acc_inner
+                        });
+                acc_outer.extend(elements_from_sub_buckets);
             }
-            acc
+            acc_outer
         })
     }
 
@@ -119,6 +155,7 @@ impl RoutingTable {
                     rand,
                     K - normalized_records_size - records_from_prev_buckets.len(),
                     &self.buckets[index + 1..self.buckets.len()],
+                    2u32.pow(index as u32).try_into().unwrap(),
                 );
 
                 let mut normalized_records = bucket.records.clone();
@@ -206,7 +243,8 @@ mod test {
         assert!(RoutingTable::get_records_from_next_buckets(
             SplitMix64::seed_from_u64(0).borrow_mut(),
             0,
-            &[Bucket::new()]
+            &[Bucket::new()],
+            2
         )
         .is_empty());
     }
