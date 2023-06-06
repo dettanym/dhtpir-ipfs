@@ -98,33 +98,12 @@ fn test_next_bucket_more_than_k_choose_full_subbuckets() {
         .add_record(3, "1011", "RE")
         .add_record(3, "1001", "RE");
 
-    let old_normalize_rt = rt.clone().normalize();
+    let new_normalize_rt = rt.normalize2(SplitMix64::seed_from_u64(0).borrow_mut());
 
-    assert_eq!(old_normalize_rt.buckets[1].records[0].cid, "0000");
-    assert_eq!(old_normalize_rt.buckets[1].records[1].cid, "0010");
-    assert_eq!(old_normalize_rt.buckets[1].records[2].cid, "0101");
-    assert_eq!(old_normalize_rt.buckets[1].records[3].cid, "0100");
-
-    let new_normalize_rt = rt
-        .clone()
-        .normalize2(SplitMix64::seed_from_u64(0).borrow_mut());
-
-    assert_eq!(
-        new_normalize_rt.buckets[1].records[0].cid,
-        old_normalize_rt.buckets[1].records[0].cid
-    );
-    assert_eq!(
-        new_normalize_rt.buckets[1].records[1].cid,
-        old_normalize_rt.buckets[1].records[1].cid
-    );
-    assert_eq!(
-        new_normalize_rt.buckets[1].records[2].cid,
-        old_normalize_rt.buckets[1].records[2].cid
-    );
-    assert_eq!(
-        new_normalize_rt.buckets[1].records[3].cid,
-        old_normalize_rt.buckets[1].records[3].cid
-    );
+    assert_eq!(new_normalize_rt.buckets[1].records[0].cid, "0000");
+    assert_eq!(new_normalize_rt.buckets[1].records[1].cid, "0010");
+    assert_eq!(new_normalize_rt.buckets[1].records[2].cid, "0101");
+    assert_eq!(new_normalize_rt.buckets[1].records[3].cid, "0100");
 }
 
 #[test]
