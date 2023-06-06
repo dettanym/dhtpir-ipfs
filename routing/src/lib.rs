@@ -121,23 +121,27 @@ impl RoutingTable {
                             .map(|s| s.into())
                             .collect();
                         let max_len = n - acc_outer.len();
-                        let elements_from_sub_buckets =
-                            vec_sub_buckets
-                                .iter()
-                                .fold(vec![], |mut acc_inner, sub_bucket| {
-                                    if sub_bucket.len() <= max_len {
+                        let elements_from_sub_buckets = vec_sub_buckets
+                            .iter()
+                            .fold_while(vec![], |mut acc_inner, sub_bucket| {
+                                if acc_inner.len() == max_len {
+                                    Done(acc_inner)
+                                } else {
+                                    if sub_bucket.len() + acc_inner.len() <= max_len {
                                         acc_inner.extend(sub_bucket.clone());
                                     } else {
                                         acc_inner.extend(
                                             RoutingTable::pick_at_random_from_records(
                                                 rand,
-                                                max_len,
+                                                max_len - acc_inner.len(),
                                                 sub_bucket.to_vec(),
                                             ),
                                         );
                                     }
-                                    acc_inner
-                                });
+                                    Continue(acc_inner)
+                                }
+                            })
+                            .into_inner();
                         acc_outer.extend(elements_from_sub_buckets);
                     }
                     Continue(acc_outer)
