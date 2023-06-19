@@ -109,43 +109,39 @@ impl RoutingTable {
             .iter()
             .fold_while(vec![], |mut acc_outer, bucket| {
                 if acc_outer.len() == n {
-                    Done(acc_outer)
-                } else {
-                    if bucket.records.len() + acc_outer.len() <= n {
-                        acc_outer.extend(bucket.records.clone());
-                    } else {
-                        let mut next_records = bucket.records.clone();
-                        next_records.sort_by_key(|record| record.dist());
-                        let vec_sub_buckets: Vec<Vec<Record>> = next_records
-                            .chunks(own_bucket_max_size)
-                            .map(|s| s.into())
-                            .collect();
-                        let max_len = n - acc_outer.len();
-                        let elements_from_sub_buckets = vec_sub_buckets
-                            .iter()
-                            .fold_while(vec![], |mut acc_inner, sub_bucket| {
-                                if acc_inner.len() == max_len {
-                                    Done(acc_inner)
-                                } else {
-                                    if sub_bucket.len() + acc_inner.len() <= max_len {
-                                        acc_inner.extend(sub_bucket.clone());
-                                    } else {
-                                        acc_inner.extend(
-                                            RoutingTable::pick_at_random_from_records(
-                                                rand,
-                                                max_len - acc_inner.len(),
-                                                sub_bucket.to_vec(),
-                                            ),
-                                        );
-                                    }
-                                    Continue(acc_inner)
-                                }
-                            })
-                            .into_inner();
-                        acc_outer.extend(elements_from_sub_buckets);
-                    }
-                    Continue(acc_outer)
+                    return Done(acc_outer);
                 }
+                if bucket.records.len() + acc_outer.len() <= n {
+                    acc_outer.extend(bucket.records.clone());
+                } else {
+                    let mut next_records = bucket.records.clone();
+                    next_records.sort_by_key(|record| record.dist());
+                    let vec_sub_buckets: Vec<Vec<Record>> = next_records
+                        .chunks(own_bucket_max_size)
+                        .map(|s| s.into())
+                        .collect();
+                    let max_len = n - acc_outer.len();
+                    let elements_from_sub_buckets = vec_sub_buckets
+                        .iter()
+                        .fold_while(vec![], |mut acc_inner, sub_bucket| {
+                            if acc_inner.len() == max_len {
+                                return Done(acc_inner);
+                            }
+                            if sub_bucket.len() + acc_inner.len() <= max_len {
+                                acc_inner.extend(sub_bucket.clone());
+                            } else {
+                                acc_inner.extend(RoutingTable::pick_at_random_from_records(
+                                    rand,
+                                    max_len - acc_inner.len(),
+                                    sub_bucket.to_vec(),
+                                ));
+                            }
+                            Continue(acc_inner)
+                        })
+                        .into_inner();
+                    acc_outer.extend(elements_from_sub_buckets);
+                }
+                Continue(acc_outer)
             })
             .into_inner()
     }
