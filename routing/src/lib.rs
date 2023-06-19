@@ -181,6 +181,7 @@ impl RoutingTable {
             buckets: normalized_buckets,
         }
     }
+}
 
 #[cfg(test)]
 mod test {
