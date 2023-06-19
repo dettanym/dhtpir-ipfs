@@ -146,7 +146,7 @@ impl RoutingTable {
             .into_inner()
     }
 
-    pub fn normalize2(self, rand: &mut SplitMix64) -> RoutingTable {
+    pub fn normalize(self, rand: &mut SplitMix64) -> RoutingTable {
         let normalized_buckets: Vec<Bucket> = self
             .buckets
             .iter()
@@ -181,55 +181,6 @@ impl RoutingTable {
             buckets: normalized_buckets,
         }
     }
-
-    pub fn normalize(self) -> RoutingTable {
-        let buckets = self.buckets;
-
-        let mut normalized_buckets: Vec<Bucket> = vec![];
-        for (index, bucket) in buckets.iter().enumerate() {
-            let mut normalized_records = bucket.records.clone();
-
-            let prev_records: Vec<Record> = buckets[0..index]
-                .iter()
-                .flat_map(|bucket| bucket.records.clone())
-                .collect();
-
-            if bucket.records.len() < K {
-                if prev_records.len() <= K - bucket.records.len() {
-                    normalized_records.extend(prev_records);
-                    if index < buckets.len() - 1 {
-                        let mut l = index + 1;
-                        while l < buckets.len()
-                            && normalized_records.len() + &buckets[l].records.len() <= K
-                        {
-                            normalized_records.extend(buckets[l].records.clone());
-                            l += 1;
-                        }
-                        if l < buckets.len() {
-                            let next_bucket_records = &buckets[l].records;
-                        }
-                        // TODO: This next while loop seems redundant, if we're just selecting randomly k - normalized_records.len() elements
-                        //  from the next bucket.
-                        // TODO: Add libraries for random choice.
-                    } else {
-                        // TODO: nothing for now for last element in buckets vector
-                    }
-                } else {
-                    // TODO: See slide 53 (bucket 3 is empty and buckets 0--2 have a total of 4 elements).
-                    //  Don't pick randomly, you'll need to pick closest ones from the entries already in $B'_i$.
-                }
-            }
-
-            normalized_buckets.push(Bucket {
-                records: normalized_records,
-            });
-        }
-
-        RoutingTable {
-            buckets: normalized_buckets,
-        }
-    }
-}
 
 #[cfg(test)]
 mod test {
