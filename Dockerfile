@@ -7,7 +7,7 @@ ENV LIBS_PATH ${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y git cmake g++ make libgmp-dev wget tar && \
+    apt-get install -y git cmake g++ make libgmp-dev wget && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone the main repository
@@ -48,8 +48,7 @@ RUN wget https://www.mpfr.org/mpfr-current/mpfr-4.2.0.zip && \
     cd mpfr-4.2.0 && \
     ./configure && \
     make && \
-    make install & \
-    rm mpfr-4.2.0
+    make install
 
 WORKDIR ${REPO_PATH}
 RUN git clone https://github.com/micciancio/NFLlib.git && \
