@@ -343,6 +343,7 @@ ASALocalRun/
 /cmake_install.cmake
 */Makefile
 */*.cmake
+CTestTestfile.cmake
 
 # Built targets.
 libsealpir.a
