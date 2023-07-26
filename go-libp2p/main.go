@@ -23,7 +23,7 @@ func main() {
 
 	var idht *dht.IpfsDHT
 	var err error
-	InitTracing()
+	InitTracing("http://localhost:14268/api/traces")
 	// start a libp2p node with default settings
 	node, err := libp2p.New(libp2p.ListenAddrStrings("/ip4/127.0.0.1/tcp/0"),
 		libp2p.Ping(false),

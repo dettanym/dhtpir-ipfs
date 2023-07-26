@@ -7,7 +7,7 @@ require (
 	github.com/libp2p/go-libp2p-kad-dht v0.24.1
 	github.com/multiformats/go-multiaddr v0.9.0
 	go.opentelemetry.io/otel v1.16.0
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.14.0
+	go.opentelemetry.io/otel/exporters/jaeger v1.14.0
 	go.opentelemetry.io/otel/sdk v1.14.0
 )
 

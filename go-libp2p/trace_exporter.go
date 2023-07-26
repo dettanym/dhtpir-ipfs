@@ -2,7 +2,7 @@ package main
 
 import (
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
@@ -22,12 +22,13 @@ func newResource() *resource.Resource {
 	return r
 }
 
-func InitTracing() {
+func InitTracing(url string) {
 	l := log.New(os.Stdout, "", 0)
 
-	exp, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
+	// Create the Jaeger exporter
+	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
 	if err != nil {
-		println("failed to initialize stdouttrace exporter: %w", err)
+		println("failed to initialize jaeger exporter: %w", err)
 		l.Fatal(err)
 	}
 	bsp := trace.NewBatchSpanProcessor(exp)
