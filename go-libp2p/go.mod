@@ -1,4 +1,4 @@
-module github.com/user/go-libp2p-tutorial
+module main
 
 go 1.20
 
@@ -6,6 +6,9 @@ require (
 	github.com/libp2p/go-libp2p v0.28.0
 	github.com/libp2p/go-libp2p-kad-dht v0.24.1
 	github.com/multiformats/go-multiaddr v0.9.0
+	go.opentelemetry.io/otel v1.16.0
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.14.0
+	go.opentelemetry.io/otel/sdk v1.14.0
 )
 
 require (
@@ -94,7 +97,6 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/whyrusleeping/go-keyspace v0.0.0-20160322163242-5b898ac5add1 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/otel v1.16.0 // indirect
 	go.opentelemetry.io/otel/metric v1.16.0 // indirect
 	go.opentelemetry.io/otel/trace v1.16.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
