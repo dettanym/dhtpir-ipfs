@@ -908,6 +908,7 @@ int main(int argc, char *argv[]){
         cout << "Usage: ./onionpir <number_of_items> <size_per_item>" << endl;
         return 1;
     }
+    number_of_items = atoi(argv[1]);
 
     if (argv[2] == NULL) {
         size_per_item = N*logt / 8;
