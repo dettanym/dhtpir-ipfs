@@ -893,7 +893,7 @@ void test_seal(Evaluator &evaluator1, Encryptor &encryptor1, Decryptor &decrypto
 //    return 0;
 //}
 
-int main(){
+int main(int argc, char *argv[]){
 
     uint64_t number_of_items = 1<<8;
     uint64_t size_per_item = 30000; // in bytes
@@ -902,6 +902,18 @@ int main(){
     // Recommended values: (logt, d) = (12, 2) or (8, 1).
     uint32_t logt = 60;
     PirParams pir_params;
+
+    // Get number of items and size per item from command line
+    if (argc <= 1) {
+        cout << "Usage: ./onionpir <number_of_items> <size_per_item>" << endl;
+        return 1;
+    }
+
+    if (argv[2] == NULL) {
+        size_per_item = N*logt / 8;
+    } else {
+        size_per_item = atoi(argv[2]);
+    }
 
 
     EncryptionParameters parms(scheme_type::BFV);
