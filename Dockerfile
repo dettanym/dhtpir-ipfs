@@ -43,7 +43,7 @@ RUN apt-get update && apt-get install unzip
 # Go back to the main repository
 WORKDIR ${REPO_PATH}
 
-RUN wget https://www.mpfr.org/mpfr-current/mpfr-4.2.0.zip && \
+RUN wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.0.zip && \
     unzip mpfr-4.2.0.zip && \
     cd mpfr-4.2.0 && \
     ./configure && \
@@ -66,4 +66,22 @@ RUN git clone https://github.com/RasoulAM/SEAL-for-OnionPIR && \
     make && \
     make install
 
+
+##### OnionPIR #####
+
 WORKDIR ${REPO_PATH}
+RUN cd Onion-PIR && \
+    cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
+    make
+
+##### CwPIR #####
+
+WORKDIR ${REPO_PATH}
+RUN git clone https://github.com/RasoulAM/constant-weight-pir && \
+    cd constant-weight-pir/src/build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
+    make
+
+WORKDIR ${REPO_PATH}
+
+
