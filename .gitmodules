@@ -1,0 +1,6 @@
+[submodule "frodo-pir-clone"]
+	path = frodo-pir-clone
+	url = https://github.com/RasoulAM/frodo-pir-clone.git
+[submodule "FastPIR-clone"]
+	path = FastPIR-clone
+	url = https://github.com/RasoulAM/FastPIR-clone
