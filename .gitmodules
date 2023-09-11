@@ -10,3 +10,6 @@
 [submodule "Onion-PIR-clone"]
 	path = Onion-PIR-clone
 	url = https://github.com/RasoulAM/Onion-PIR-clone
+[submodule "SealPIR-clone"]
+	path = SealPIR-clone
+	url = https://github.com/RasoulAM/SealPIR-clone

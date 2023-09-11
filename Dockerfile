@@ -7,7 +7,7 @@ ENV LIBS_PATH ${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y git cmake g++ make libgmp-dev wget && \
+    apt-get install -y git cmake g++ make libgmp-dev wget unzip && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone the main repository
@@ -21,7 +21,7 @@ RUN git checkout private-bitswap && \
 # Clone the SEAL repository and build it
 RUN git clone https://github.com/microsoft/SEAL.git && \
     cd SEAL && \
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSEAL_USE_INTEL_HEXL=ON -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
     cmake --build build && \
     cmake --install build && \
     cd ${REPO_PATH} && \
@@ -34,17 +34,15 @@ RUN git clone https://github.com/microsoft/SEAL.git && \
 WORKDIR ${REPO_PATH}
 RUN ls -la FastPIR-clone/ && \
     cd FastPIR-clone/src && \
-    cmake . -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
+    cmake .  -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
     make -j$(nproc)
 
 ##### SealPIR #####
 
 # Go into the SealPIR directory and build it
-WORKDIR ${REPO_PATH}/SealPIR
-RUN cmake . -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
+WORKDIR ${REPO_PATH}/SealPIR-clone
+RUN cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
     make -j$(nproc)
-
-RUN apt-get update && apt-get install unzip
 
 # Go back to the main repository
 WORKDIR ${REPO_PATH}
@@ -105,7 +103,7 @@ RUN git clone https://github.com/Microsoft/vcpkg.git && \
 WORKDIR ${REPO_PATH}
 RUN git clone https://github.com/menonsamir/spiral.git && \
     cd spiral && \
-    cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=${REPO_PATH}/vcpkg/scripts/buildsystems/vcpkg.cmake && \
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${REPO_PATH}/vcpkg/scripts/buildsystems/vcpkg.cmake && \
     cmake --build build -j4 -- PARAMSET=PARAMS_DYNAMIC \
         TEXP=8 TEXPRIGHT=56 TCONV=4 TGSW=8 QPBITS=20 PVALUE=256 \
         QNUMFIRST=1 QNUMREST=0 OUTN=2
