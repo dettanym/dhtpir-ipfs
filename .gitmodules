@@ -4,3 +4,9 @@
 [submodule "FastPIR-clone"]
 	path = FastPIR-clone
 	url = https://github.com/RasoulAM/FastPIR-clone
+[submodule "constant-weight-pir"]
+	path = constant-weight-pir
+	url = https://github.com/RasoulAM/constant-weight-pir.git
+[submodule "Onion-PIR-clone"]
+	path = Onion-PIR-clone
+	url = https://github.com/RasoulAM/Onion-PIR-clone
