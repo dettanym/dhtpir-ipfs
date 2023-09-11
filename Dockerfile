@@ -7,7 +7,7 @@ ENV LIBS_PATH ${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y git cmake g++ make libgmp-dev wget unzip && \
+    apt-get install -y git cmake g++ make libgmp-dev wget && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone the main repository
@@ -32,17 +32,19 @@ RUN git clone https://github.com/microsoft/SEAL.git && \
 # Go back to the main repository
 # Clone the FastPIR repository and build it
 WORKDIR ${REPO_PATH}
-RUN ls -la FastPIR-clone/ && \
-    cd FastPIR-clone/src && \
+RUN cd FastPIR-clone/src && \
     cmake .  -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
     make -j$(nproc)
 
 ##### SealPIR #####
 
 # Go into the SealPIR directory and build it
-WORKDIR ${REPO_PATH}/SealPIR-clone
-RUN cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
+WORKDIR ${REPO_PATH}
+RUN cd SealPIR-clone && \
+    cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
     make -j$(nproc)
+
+RUN apt-get update && apt-get install unzip
 
 # Go back to the main repository
 WORKDIR ${REPO_PATH}
@@ -101,8 +103,7 @@ RUN git clone https://github.com/Microsoft/vcpkg.git && \
     ./vcpkg/vcpkg install hexl
 
 WORKDIR ${REPO_PATH}
-RUN git clone https://github.com/menonsamir/spiral.git && \
-    cd spiral && \
+RUN cd spiral-clone && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${REPO_PATH}/vcpkg/scripts/buildsystems/vcpkg.cmake && \
     cmake --build build -j4 -- PARAMSET=PARAMS_DYNAMIC \
         TEXP=8 TEXPRIGHT=56 TCONV=4 TGSW=8 QPBITS=20 PVALUE=256 \

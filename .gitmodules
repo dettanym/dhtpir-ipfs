@@ -13,3 +13,6 @@
 [submodule "SealPIR-clone"]
 	path = SealPIR-clone
 	url = https://github.com/RasoulAM/SealPIR-clone
+[submodule "spiral-clone"]
+	path = spiral-clone
+	url = https://github.com/RasoulAM/spiral-clone.git
