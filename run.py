@@ -3,10 +3,6 @@ import re
 import json
 import math
 
-num_rows = 1024
-payload_byte_size = 256
-log_dir = f"logs/logs-{num_rows}-{payload_byte_size}"
-
 def run_command_no_output(command):
     try:
         subprocess.check_call(command)
@@ -25,7 +21,7 @@ def run_command(command, output_file):
         print(f"Failed to run: {' '.join(command)}")
         return False
 
-def parse_cwpir():
+def parse_cwpir(log_dir):
     # Open the file and read the content
     with open(f'{log_dir}/cwpir.txt', 'r') as file:
         log_content = file.read()
@@ -48,7 +44,7 @@ def parse_cwpir():
     with open(f'{log_dir}/cwpir.json', 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
-def parse_sealpir():
+def parse_sealpir(log_dir):
     try:
         with open(f"{log_dir}/sealpir.txt", 'r') as f:
             log_data = f.read()
@@ -78,29 +74,31 @@ def parse_sealpir():
     with open(f'{log_dir}/sealpir.json', 'w') as json_file:
         json.dump(data_dict, json_file, indent=4)
 
-def parse_spiral(version="spiral"):
+def parse_spiral(log_dir, version="spiral"):
     
     with open(f"{log_dir}/{version}.txt", 'r') as file:
         log_content = file.read()
     
     patterns = {
-        "Number of items" : r"Number of items: (\d+)",
-        "Item size (B)" : r"Item size: (\d+)",
-        "Total offline query size (b)": r"Total offline query size \(b\): (\d+)",
-        "First dimension (b)": r"First dimension \(b\): (\d+)",
-        "Total for other dimensions (b)": r"Total for other dimensions \(b\): (\d+)",
-        "Total online query size (b)": r"Total online query size \(b\): (\d+)",
-        "Response size (b)": r"Response size \(b\) : (\d+)",
-        "Main expansion (us)": r"Main expansion  \(CPU·us\): (\d+)",
-        "Further dimension expansion (us)": r"Further dimension expansion \(CPU·us\): (\d+)",
-        "Conversion (us)": r"Conversion \(CPU·us\): (\d+)",
-        "Database-independent computation Total (us)": r"Database-independent computation.*?Total \(CPU·us\): (\d+)",
-        "First dimension multiply (us)": r"First dimension multiply \(CPU·us\): (\d+)",
+        "Number of items" : r"Number of items\s*:\s*(\d+)",
+        "n" : r"PIR over n=(\d+) elements",
+        "Item size (B)" : r"Item size\s*:\s*(\d+)",
+        "size (B)" : r"elements of size (\d+) bytes each",
+        "Total offline query size (KB)": r"Total offline query size\s*\(b\)\s*:\s*(\d+)",
+        "First dimension": r"First dimension\s*\(b\)\s*:\s*(\d+)",
+        "Total for other dimensions": r"Total for other dimensions\s*\(b\)\s*:\s*(\d+)",
+        "Total online query size (KB)": r"Total online query size\s*\(b\)\s*:\s*(\d+)",
+        "Response size (KB)": r"Response size\s*\(b\)\s*:\s*(\d+)",
+        "Main expansion (us)": r"Main expansion\s*\(CPU·us\)\s*:\s*(\d+)",
+        "Further dimension expansion (us)": r"Further dimension expansion\s*\(CPU·us\)\s*:\s*(\d+)",
+        "Conversion (us)": r"Conversion \(CPU·us\)\s*:\s*(\d+)",
+        "Database-independent computation Total (us)": r"Database-independent computation.*?Total \(CPU·us\)\s*:\s*(\d+)",
+        "First dimension multiply (us)": r"First dimension multiply \(CPU·us\)\s*:\s*(\d+)",
         "Folding (us)": r"Folding \(CPU·us\): (\d+)",
-        "Database-dependent computation Total (us)": r"Database-dependent computation.*?Total \(CPU·us\): (\d+)",
-        "Key generation (us)": r"Key generation \(CPU·us\): (\d+)",
-        "Query generation (us)": r"Query generation \(CPU·us\): (\d+)",
-        "Decoding (us)": r"Decoding \(CPU·us\): (\d+)"
+        "Database-dependent computation Total (us)": r"Database-dependent computation.*?Total \(CPU·us\)\s*:\s*(\d+)",
+        "Key generation (us)": r"Key generation \(CPU·us\)\s*:\s*(\d+)",
+        "Query generation (us)": r"Query generation \(CPU·us\)\s*:\s*(\d+)",
+        "Decoding (us)": r"Decoding \(CPU·us\)\s*:\s*(\d+)"
     }
     
     results = {}
@@ -114,7 +112,7 @@ def parse_spiral(version="spiral"):
     with open(f'{log_dir}/{version}.json', 'w') as json_file:
         json.dump(results, json_file, indent=4)
               
-def parse_fastpir():
+def parse_fastpir(log_dir):
     # Open the file and read the content
     with open(f'{log_dir}/fastpir.txt', 'r') as file:
         data = file.read()
@@ -147,49 +145,54 @@ def parse_fastpir():
 
 def main():
     
-    log_num_rows = int(math.log(num_rows, 2))
-    run_command_no_output(["mkdir", "-p", log_dir])
+    for payload_byte_size in [256]:
+        for log_num_rows in [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]:
+            num_rows = 2**log_num_rows
+            log_dir = f"logs/logs-{num_rows}-{payload_byte_size}"
+            
+            log_num_rows = int(math.log(num_rows, 2))
+            run_command_no_output(["mkdir", "-p", log_dir])
 
-    # SealPIR
-    if run_command(["SealPIR-clone/bin/main2", str(num_rows), str(payload_byte_size)], f"{log_dir}/sealpir.txt"):
-        parse_sealpir()
+            # SealPIR
+            if run_command(["SealPIR-clone/bin/main2", str(num_rows), str(payload_byte_size)], f"{log_dir}/sealpir.txt"):
+                parse_sealpir(log_dir)
 
-    # FastPIR
-    if run_command(["FastPIR-clone/bin/fastpir", "-n", str(num_rows), "-s", str(payload_byte_size)], f"{log_dir}/fastpir.txt"):
-        parse_fastpir()
+            # FastPIR
+            if run_command(["FastPIR-clone/bin/fastpir", "-n", str(num_rows), "-s", str(payload_byte_size)], f"{log_dir}/fastpir.txt"):
+                parse_fastpir(log_dir)
 
-    # Constant-weight PIR
-    command = ["constant-weight-pir/src/build/main", f"--num_keywords={num_rows}", f"--response_bytesize={payload_byte_size}"]
-    if run_command(command, f"{log_dir}/cwpir.txt"):
-        parse_cwpir()
-    
-    # OnionPIR
-    command = ["Onion-PIR-clone/onionpir"]
-    if not run_command(command, f"{log_dir}/onionpir.txt"):
-        print("Failed to run OnionPIR")
+            # # Constant-weight PIR
+            # command = ["constant-weight-pir/src/build/main", f"--num_keywords={num_rows}", f"--response_bytesize={payload_byte_size}"]
+            # if run_command(command, f"{log_dir}/cwpir.txt"):
+            #     parse_cwpir(log_dir)
+            
+            # OnionPIR
+            command = ["Onion-PIR-clone/onionpir"]
+            if not run_command(command, f"{log_dir}/onionpir.txt"):
+                print("Failed to run OnionPIR")
 
-    # Spiral Variants
-    first_dim = 8
-    other_dim = log_num_rows - first_dim
-    base_spiral_command = ["spiral-clone/build/spiral", str(first_dim), str(other_dim), "0"]
+            # Spiral Variants
+            first_dim = 8
+            other_dim = log_num_rows - first_dim
+            base_spiral_command = ["spiral-clone/build/spiral", str(first_dim), str(other_dim), "0"]
 
-    # Spiral
-    if run_command(base_spiral_command, f"{log_dir}/spiral.txt"):
-        parse_spiral('spiral')
+            # Spiral
+            if run_command(base_spiral_command, f"{log_dir}/spiral.txt"):
+                parse_spiral(log_dir, 'spiral')
 
-    # SpiralStream
-    if run_command(base_spiral_command + ["--direct-upload"], f"{log_dir}/spiral-direct-upload.txt"):
-        parse_spiral('spiral-direct-upload')
+            # SpiralStream
+            if run_command(base_spiral_command + ["--direct-upload"], f"{log_dir}/spiral-stream.txt"):
+                parse_spiral(log_dir, 'spiral-stream')
 
-    # SpiralPack
-    if run_command(base_spiral_command + ["--high-rate"], f"{log_dir}/spiral-high-rate.txt"):
-        parse_spiral('spiral-high-rate')
+            # SpiralPack
+            if run_command(base_spiral_command + ["--high-rate"], f"{log_dir}/spiral-pack.txt"):
+                parse_spiral(log_dir, 'spiral-pack')
 
-    # SpiralStreamPack
-    if run_command(base_spiral_command + ["--direct-upload", "--high-rate"], f"{log_dir}/spiral-direct-upload-high-rate.txt"):
-        parse_spiral('spiral-direct-upload-high-rate')
+            # SpiralStreamPack
+            if run_command(base_spiral_command + ["--direct-upload", "--high-rate"], f"{log_dir}/spiral-stream-pack.txt"):
+                parse_spiral(log_dir, 'spiral-stream-pack')
 
-    print("Done")
+            print("Done")
 
 if __name__ == "__main__":
     main()

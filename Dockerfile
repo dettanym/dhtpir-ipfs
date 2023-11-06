@@ -7,7 +7,7 @@ ENV LIBS_PATH ${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y git cmake g++ make libgmp-dev wget && \
+    apt-get install -y git cmake g++ make libgmp-dev wget unzip clang-12 curl zip tar pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone the main repository
@@ -43,8 +43,6 @@ WORKDIR ${REPO_PATH}
 RUN cd SealPIR-clone && \
     cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${LIBS_PATH} && \
     make -j$(nproc)
-
-RUN apt-get update && apt-get install unzip
 
 # Go back to the main repository
 WORKDIR ${REPO_PATH}
@@ -96,8 +94,6 @@ RUN cd constant-weight-pir/src/build && \
 ##### Spiral #####
 
 WORKDIR ${REPO_PATH}
-RUN apt install clang-12 -y
-RUN apt-get install curl zip unzip tar pkg-config -y
 RUN git clone https://github.com/Microsoft/vcpkg.git && \
     ./vcpkg/bootstrap-vcpkg.sh -disableMetrics && \
     ./vcpkg/vcpkg install hexl
