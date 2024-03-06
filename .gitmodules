@@ -1,0 +1,18 @@
+[submodule "frodo-pir-clone"]
+	path = frodo-pir-clone
+	url = https://github.com/RasoulAM/frodo-pir-clone.git
+[submodule "FastPIR-clone"]
+	path = FastPIR-clone
+	url = https://github.com/RasoulAM/FastPIR-clone
+[submodule "constant-weight-pir"]
+	path = constant-weight-pir
+	url = https://github.com/RasoulAM/constant-weight-pir.git
+[submodule "Onion-PIR-clone"]
+	path = Onion-PIR-clone
+	url = https://github.com/RasoulAM/Onion-PIR-clone
+[submodule "SealPIR-clone"]
+	path = SealPIR-clone
+	url = https://github.com/RasoulAM/SealPIR-clone
+[submodule "spiral-clone"]
+	path = spiral-clone
+	url = https://github.com/RasoulAM/spiral-clone.git
