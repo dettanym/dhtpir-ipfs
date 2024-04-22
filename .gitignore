@@ -4,3 +4,4 @@ build/**
 mpfr-4.1.0/**
 SEAL/**
 PIR-with-Paillier/__pycache__/**
+logs-*

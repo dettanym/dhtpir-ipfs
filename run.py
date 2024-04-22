@@ -112,7 +112,7 @@ def parse_spiral(log_dir, version="spiral"):
     with open(f'{log_dir}/{version}.json', 'w') as json_file:
         json.dump(results, json_file, indent=4)
               
-def parse_fastpir(log_dir):
+def parse_fastpir(log_dir, num_rows, item_size):
     # Open the file and read the content
     with open(f'{log_dir}/fastpir.txt', 'r') as file:
         data = file.read()
@@ -129,7 +129,10 @@ def parse_fastpir(log_dir):
     }
 
     # Create a dictionary to store the extracted values
-    extracted_values = {}
+    extracted_values = {
+        "Number of items": num_rows,
+        "Item size (B)": item_size,       
+    }
 
     # Loop through each pattern and find the matching value in the data
     for key, pattern in patterns.items():
@@ -143,10 +146,43 @@ def parse_fastpir(log_dir):
     with open(f'{log_dir}/fastpir.json', 'w') as json_file:
         json.dump(extracted_values, json_file, indent=4)
 
+def parse_onionpir(log_dir, num_rows, item_size):
+    # Open the file and read the content
+    with open(f'{log_dir}/onionpir.txt', 'r') as file:
+        data = file.read()
+
+    # Define the regex patterns for each item to be extracted
+    patterns = {
+        "Gal Keys (KB)": r"Gal keys Size: (\d+) KB",
+        "Query size (KB)": r"Query Size: (\d+) KB",
+        "Reply size (B)": r"Reply Size: (\d+) KB",
+        "Preprocessing time (ms)": r"Main: PIRServer pre-processing time: (\d+) ms",
+        "Query generation time (ms)": r"Main: PIRClient query generation time: (\d+) ms",
+        "Reply time (ms)": r"Main: PIRServer reply generation time: (\d+) ms",
+    }
+
+    # Create a dictionary to store the extracted values
+    extracted_values = {
+        "Number of items": num_rows,
+        "Item size (B)": item_size,       
+    }
+
+    # Loop through each pattern and find the matching value in the data
+    for key, pattern in patterns.items():
+        match = re.search(pattern, data)
+        if match:
+            extracted_values[key] = int(match.group(1))
+        else:
+            extracted_values[key] = None
+
+    # Write the extracted values to a JSON file
+    with open(f'{log_dir}/onionpir.json', 'w') as json_file:
+        json.dump(extracted_values, json_file, indent=4)
+
 def main():
     
-    for payload_byte_size in [256]:
-        for log_num_rows in [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]:
+    for payload_byte_size in [256*1024]:
+        for log_num_rows in [11, 12]:
             num_rows = 2**log_num_rows
             log_dir = f"logs/logs-{num_rows}-{payload_byte_size}"
             
@@ -156,10 +192,14 @@ def main():
             # SealPIR
             if run_command(["SealPIR-clone/bin/main2", str(num_rows), str(payload_byte_size)], f"{log_dir}/sealpir.txt"):
                 parse_sealpir(log_dir)
+            else :
+                print("Failed to run SealPIR")
 
             # FastPIR
             if run_command(["FastPIR-clone/bin/fastpir", "-n", str(num_rows), "-s", str(payload_byte_size)], f"{log_dir}/fastpir.txt"):
-                parse_fastpir(log_dir)
+                parse_fastpir(log_dir, num_rows, payload_byte_size)
+            else:
+                print("Failed to run FastPIR")
 
             # # Constant-weight PIR
             # command = ["constant-weight-pir/src/build/main", f"--num_keywords={num_rows}", f"--response_bytesize={payload_byte_size}"]
@@ -167,8 +207,10 @@ def main():
             #     parse_cwpir(log_dir)
             
             # OnionPIR
-            command = ["Onion-PIR-clone/onionpir"]
-            if not run_command(command, f"{log_dir}/onionpir.txt"):
+            command = ["Onion-PIR-clone/onionpir", str(num_rows), str(payload_byte_size)]
+            if run_command(command, f"{log_dir}/onionpir.txt"):
+                parse_onionpir(log_dir, num_rows, payload_byte_size)
+            else:
                 print("Failed to run OnionPIR")
 
             # Spiral Variants
@@ -179,18 +221,26 @@ def main():
             # Spiral
             if run_command(base_spiral_command, f"{log_dir}/spiral.txt"):
                 parse_spiral(log_dir, 'spiral')
+            else:
+                print("Failed to run Spiral")
 
             # SpiralStream
             if run_command(base_spiral_command + ["--direct-upload"], f"{log_dir}/spiral-stream.txt"):
                 parse_spiral(log_dir, 'spiral-stream')
+            else:
+                print("Failed to run SpiralStream")
 
             # SpiralPack
             if run_command(base_spiral_command + ["--high-rate"], f"{log_dir}/spiral-pack.txt"):
                 parse_spiral(log_dir, 'spiral-pack')
+            else:
+                print("Failed to run SpiralPack")
 
             # SpiralStreamPack
             if run_command(base_spiral_command + ["--direct-upload", "--high-rate"], f"{log_dir}/spiral-stream-pack.txt"):
                 parse_spiral(log_dir, 'spiral-stream-pack')
+            else:
+                print("Failed to run SpiralStreamPack")
 
             print("Done")
 

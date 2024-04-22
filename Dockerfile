@@ -15,7 +15,7 @@ RUN git clone https://github.com/dettanym/dhtpir-ipfs.git ${REPO_PATH}
 
 # Checkout the 'private-bitswap' branch
 WORKDIR ${REPO_PATH}
-RUN git checkout private-bitswap && \
+RUN git checkout main && \
     git submodule update --init --recursive
 
 # Clone the SEAL repository and build it
