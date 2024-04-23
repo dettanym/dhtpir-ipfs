@@ -116,3 +116,22 @@ RUN cd frodo-pir-clone && \
     cargo clean && \ 
     cargo build --release
 
+# Download and install the latest version of Go
+RUN wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz -O go.tar.gz && \
+    tar -xvf go.tar.gz && \
+    mv go /usr/local && \
+    rm go.tar.gz
+
+# Set Go environment variables
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH="/go"
+ENV GOBIN="/go/bin"
+
+WORKDIR ${REPO_PATH}
+RUN git clone https://github.com/dettanym/private-zikade.git && \
+    cd private-zikade && \
+    git checkout private-routing && \
+    git pull && \
+    go build
+
+WORKDIR ${REPO_PATH}

@@ -2,6 +2,7 @@ import subprocess
 import re
 import json
 import math
+import os
 
 def run_command_no_output(command):
     try:
@@ -11,10 +12,18 @@ def run_command_no_output(command):
         print(f"Failed to run: {' '.join(command)}")
         return False
 
-def run_command(command, output_file):
+def run_command(command, output_file, cwd=".", env=None):
+    # Get the current environment, modify it with env, or use a new environment
+    if env is not None:
+        # Create a copy of the current environment and update it
+        current_env = os.environ.copy()
+        current_env.update(env)
+    else:
+        current_env = None  # This makes subprocess use the current environment
+
     try:
         with open(output_file, 'w') as f:
-            subprocess.check_call(command, stdout=f, stderr=open('err.txt', 'w'))
+            subprocess.check_call(command, cwd=cwd, stdout=f, stderr=open('err.txt', 'w'), env=current_env)
         print(f"Success {command}")
         return True
     except subprocess.CalledProcessError:
@@ -189,10 +198,44 @@ def parse_onionpir(log_dir, num_rows, item_size):
     with open(f'{log_dir}/onionpir.json', 'w') as json_file:
         json.dump(extracted_values, json_file, indent=4)
 
+def parse_rlwepir(log_dir, num_rows, item_size, version='RLWE_All_Keys'):
+    # Open the log file and read the content
+    with open(f'{log_dir}/{version}.txt', 'r') as file:
+        data = file.read()
+
+    # Define the regex patterns for each item to be extracted
+    patterns = {
+        "log2_num_rows": r"log_2_num_rows:\s+(\d+)",
+        "log_2_num_db_rows": r"log_2_num_db_rows:\s+(\d+)",
+        "time for key expansion (ms)": r"time elapsed for key expansion:\s+(\d+)",
+        "time for transformDB (ms)": r"time elapsed for transformDBToPlaintextForm is:\s+(\d+)",
+        "server time (ms)": r"server PIR time:\s+(\d+)",
+        "request size (B)": r"request size B:\s+(\d+)",
+        "response size (B)": r"response size B:\s+(\d+)"
+    }
+
+    # Create a dictionary to store the extracted values
+    extracted_values = {
+        "Number of items": num_rows,
+        "Item size (B)": item_size,
+    }
+
+    # Loop through each pattern and find the matching value in the data
+    for key, pattern in patterns.items():
+        match = re.search(pattern, data)
+        if match:
+            extracted_values[key] = int(match.group(1))
+        else:
+            extracted_values[key] = None
+
+    # Write the extracted values to a JSON file
+    with open(f'{log_dir}/{version}.json', 'w') as json_file:
+        json.dump(extracted_values, json_file, indent=4)
+
 def main():
     
     # Payload size of 0 means that each protocol will the largest payload size it supports
-    for payload_byte_size in [0, 256]:
+    for payload_byte_size in [0]:
         for log_num_rows in [11, 12]:
             num_rows = 2**log_num_rows
             log_dir = f"logs/logs-{num_rows}-{payload_byte_size}"
@@ -236,28 +279,47 @@ def main():
             base_spiral_command = ["spiral-clone/build/spiral", str(first_dim), str(other_dim), "0"]
 
             # Spiral
-            if run_command(base_spiral_command, f"{log_dir}/spiral.txt"):
+            command = base_spiral_command
+            if run_command(command, f"{log_dir}/spiral.txt"):
                 parse_spiral(log_dir, num_rows, payload_byte_size, 'spiral')
             else:
                 print("Failed to run Spiral")
 
             # SpiralStream
-            if run_command(base_spiral_command + ["--direct-upload"], f"{log_dir}/spiral-stream.txt"):
+            command = base_spiral_command + ["--direct-upload"]
+            if run_command(command, f"{log_dir}/spiral-stream.txt"):
                 parse_spiral(log_dir, num_rows, payload_byte_size, 'spiral-stream')
             else:
                 print("Failed to run SpiralStream")
 
             # SpiralPack
-            if run_command(base_spiral_command + ["--high-rate"], f"{log_dir}/spiral-pack.txt"):
+            command = base_spiral_command + ["--high-rate"]
+            if run_command(command, f"{log_dir}/spiral-pack.txt"):
                 parse_spiral(log_dir, num_rows, payload_byte_size, 'spiral-pack')
             else:
                 print("Failed to run SpiralPack")
 
             # SpiralStreamPack
-            if run_command(base_spiral_command + ["--direct-upload", "--high-rate"], f"{log_dir}/spiral-stream-pack.txt"):
+            command = base_spiral_command + ["--direct-upload", "--high-rate"]
+            if run_command(command, f"{log_dir}/spiral-stream-pack.txt"):
                 parse_spiral(log_dir, num_rows, payload_byte_size, 'spiral-stream-pack')
             else:
                 print("Failed to run SpiralStreamPack")
+            
+            rlwe_payload_byte_size = 256*1024 if payload_byte_size == 0 else payload_byte_size
+            log2_num_rows = math.ceil(math.log2(num_rows))
+            for mode in ["RLWE_All_Keys", "RLWE_Whispir_3_Keys", "RLWE_Whispir_2_Keys"]:
+                command = [f"go", "test", "-v", "./pir/...", "-run", "E2E"]
+                env_vars = {
+                    'LOG2_NUMBER_OF_ROWS': f'{log2_num_rows}',
+                    'LOG2_NUM_DB_ROWS': f'{log2_num_rows}',
+                    'ROW_SIZE': f'{rlwe_payload_byte_size}',
+                    'MODE': f'{mode}'
+                }
+                if run_command(command, f"{log_dir}/{mode}.txt", cwd="private-zikade", env=env_vars):
+                    parse_rlwepir(log_dir, num_rows, rlwe_payload_byte_size, mode)
+                else:
+                    print(f"Failed to run {mode}")
 
             print("Done")
 
