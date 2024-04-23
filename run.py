@@ -173,6 +173,7 @@ def parse_onionpir(log_dir, num_rows, item_size):
     # Define the regex patterns for each item to be extracted
     patterns = {
         "Gal Keys (KB)": r"Gal keys Size: (\d+) KB",
+        "Encrypted Secret Key (KB): ": r"Encrypted Secret Key Size: (\d+) KB",
         "Query size (KB)": r"Query Size: (\d+) KB",
         "Reply size (B)": r"Reply Size: (\d+) KB",
         "Preprocessing time (ms)": r"Main: PIRServer pre-processing time: (\d+) ms",
