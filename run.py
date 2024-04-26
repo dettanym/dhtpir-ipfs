@@ -5,6 +5,7 @@ import math
 import os
 
 def run_command_no_output(command):
+    # return True
     try:
         subprocess.check_call(command)
         return True
@@ -13,6 +14,7 @@ def run_command_no_output(command):
         return False
 
 def run_command(command, output_file, cwd=".", env=None):
+    # return True
     # Get the current environment, modify it with env, or use a new environment
     if env is not None:
         # Create a copy of the current environment and update it
@@ -103,11 +105,11 @@ def parse_spiral(log_dir, num_rows, item_size, version="spiral"):
         "n" : r"PIR over n=(\d+) elements",
         "Item size (B)" : r"Item size\s*:\s*(\d+)",
         "size (B)" : r"elements of size (\d+) bytes each",
-        "Total offline query size (KB)": r"Total offline query size\s*\(b\)\s*:\s*(\d+)",
+        "Total offline query size (B)": r"Total offline query size\s*\(b\)\s*:\s*(\d+)",
         "First dimension": r"First dimension\s*\(b\)\s*:\s*(\d+)",
         "Total for other dimensions": r"Total for other dimensions\s*\(b\)\s*:\s*(\d+)",
-        "Total online query size (KB)": r"Total online query size\s*\(b\)\s*:\s*(\d+)",
-        "Response size (KB)": r"Response size\s*\(b\)\s*:\s*(\d+)",
+        "Total online query size (B)": r"Total online query size\s*\(b\)\s*:\s*(\d+)",
+        "Response size (B)": r"Response size\s*\(b\)\s*:\s*(\d+)",
         "Main expansion (us)": r"Main expansion\s*\(CPU·us\)\s*:\s*(\d+)",
         "Further dimension expansion (us)": r"Further dimension expansion\s*\(CPU·us\)\s*:\s*(\d+)",
         "Conversion (us)": r"Conversion \(CPU·us\)\s*:\s*(\d+)",
@@ -173,9 +175,9 @@ def parse_onionpir(log_dir, num_rows, item_size):
     # Define the regex patterns for each item to be extracted
     patterns = {
         "Gal Keys (KB)": r"Gal keys Size: (\d+) KB",
-        "Encrypted Secret Key (KB): ": r"Encrypted Secret Key Size: (\d+) KB",
+        "Encrypted Secret Key (KB)": r"Encrypted Secret Key Size: (\d+) KB",
         "Query size (KB)": r"Query Size: (\d+) KB",
-        "Reply size (B)": r"Reply Size: (\d+) KB",
+        "Reply size (KB)": r"Reply Size: (\d+) KB",
         "Preprocessing time (ms)": r"Main: PIRServer pre-processing time: (\d+) ms",
         "Query generation time (ms)": r"Main: PIRClient query generation time: (\d+) ms",
         "Reply time (ms)": r"Main: PIRServer reply generation time: (\d+) ms",
@@ -208,9 +210,9 @@ def parse_rlwepir(log_dir, num_rows, item_size, version='RLWE_All_Keys'):
     patterns = {
         "log2_num_rows": r"log_2_num_rows:\s+(\d+)",
         "log_2_num_db_rows": r"log_2_num_db_rows:\s+(\d+)",
-        "time for key expansion (ms)": r"time elapsed for key expansion:\s+(\d+)",
-        "time for transformDB (ms)": r"time elapsed for transformDBToPlaintextForm is:\s+(\d+)",
-        "server time (ms)": r"server PIR time:\s+(\d+)",
+        "time for key expansion (ms)": r"time elapsed for key expansion \(ms\):\s+(\d+)",
+        "time for transformDB (ms)": r"time elapsed for transformDBToPlaintextForm \(ms\) is:\s+(\d+)",
+        "server time (ms)": r"server PIR time \(ms\):\s+(\d+)",
         "request size (B)": r"request size B:\s+(\d+)",
         "response size (B)": r"response size B:\s+(\d+)"
     }
@@ -307,10 +309,11 @@ def main():
             else:
                 print("Failed to run SpiralStreamPack")
             
+            # RLWEPIR
             rlwe_payload_byte_size = 256*1024 if payload_byte_size == 0 else payload_byte_size
             log2_num_rows = math.ceil(math.log2(num_rows))
             for mode in ["RLWE_All_Keys", "RLWE_Whispir_3_Keys", "RLWE_Whispir_2_Keys"]:
-                command = [f"go", "test", "-v", "./pir/...", "-run", "E2E"]
+                command = [f"go", "test", "-v", "-timeout", "99999s", "./pir/...", "-run", "E2E"]
                 env_vars = {
                     'LOG2_NUMBER_OF_ROWS': f'{log2_num_rows}',
                     'LOG2_NUM_DB_ROWS': f'{log2_num_rows}',
