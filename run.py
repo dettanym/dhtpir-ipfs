@@ -304,7 +304,7 @@ def main():
                     print("Failed to run Spiral")
 
             # RLWEPIR
-            if log2_num_rows <= 16:
+            if log_num_rows <= 16:
                 rlwe_payload_byte_size = 256*1024 if payload_byte_size == 0 else payload_byte_size
                 log2_num_rows = math.ceil(math.log2(num_rows))
                 # for mode in ["RLWE_All_Keys", "RLWE_Whispir_3_Keys", "RLWE_Whispir_2_Keys"]:
