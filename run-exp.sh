@@ -1,5 +1,5 @@
 # Run a Docker container named "dhtpir-container" from the image "dhtpir-ipfs"
-docker run -dit --name dhtpir-container dhtpir-ipfs 
+docker run -dit --name dhtpir-container rasoulam/dhtpir-ipfs
 
 # Wait for a few seconds to ensure the container is fully up and running
 sleep 5
