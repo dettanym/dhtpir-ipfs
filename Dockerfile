@@ -7,8 +7,11 @@ ENV LIBS_PATH ${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y git cmake g++ make libgmp-dev wget unzip clang-12 curl zip tar pkg-config git-lfs && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y git cmake g++ make libgmp-dev wget unzip curl zip tar pkg-config git-lfs
+    
+RUN apt-get install -y clang-12 
+
+RUN rm -rf /var/lib/apt/lists/*
 
 # Clone the main repository
 RUN git clone https://github.com/dettanym/dhtpir-ipfs.git ${REPO_PATH} 
