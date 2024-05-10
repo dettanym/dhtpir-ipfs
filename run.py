@@ -251,7 +251,7 @@ def main():
     for run in range(3):
         # Payload size of 0 means that each protocol will the largest payload size it supports
         for payload_byte_size in [0]:
-            for log_num_rows in [10, 11]:
+            for log_num_rows in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]:
                 num_rows = 2**log_num_rows
                 log_dir = f"logs/logs-{num_rows}-{payload_byte_size}"
                 

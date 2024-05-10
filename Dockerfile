@@ -7,7 +7,7 @@ ENV LIBS_PATH ${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y git cmake g++ make libgmp-dev wget unzip clang curl zip tar pkg-config git-lfs && \
+    apt-get install -y git cmake g++ make libgmp-dev wget unzip clang-12 curl zip tar pkg-config git-lfs && \
     rm -rf /var/lib/apt/lists/*
 
 # Clone the main repository
