@@ -15,9 +15,6 @@ def run_command_no_output(command):
         return False
 
 def run_command(command, output_file, cwd=".", env=None):
-    with open(output_file, 'w') as f:
-        f.write(f"Running {' '.join(command)}\n")   
-    return True
     # Get the current environment, modify it with env, or use a new environment
     if env is not None:
         # Create a copy of the current environment and update it
@@ -254,7 +251,7 @@ def main():
     for run in range(3):
         # Payload size of 0 means that each protocol will the largest payload size it supports
         for payload_byte_size in [0]:
-            for log_num_rows in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]:
+            for log_num_rows in [10, 11]:
                 num_rows = 2**log_num_rows
                 log_dir = f"logs/logs-{num_rows}-{payload_byte_size}"
                 
@@ -265,7 +262,7 @@ def main():
                 run_command_no_output(["mkdir", "-p", os.path.join(log_dir, "sealpir")])
                 sealpir_payload_byte_size = 10240 if payload_byte_size == 0 else payload_byte_size
                 id = random_id()
-                if run_command(["SealPIR-clone/bin/main2", str(num_rows), str(sealpir_payload_byte_size)], f"{log_dir}/sealpir/{random_id()}.txt"):
+                if run_command(["SealPIR-clone/bin/main2", str(num_rows), str(sealpir_payload_byte_size)], f"{log_dir}/sealpir/{id}.txt"):
                     parse_sealpir(log_dir, num_rows, sealpir_payload_byte_size, id)
                 else :
                     print("Failed to run SealPIR")
