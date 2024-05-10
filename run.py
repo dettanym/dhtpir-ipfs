@@ -3,6 +3,7 @@ import re
 import json
 import math
 import os
+import time
 
 def run_command_no_output(command):
     # return True
@@ -14,7 +15,9 @@ def run_command_no_output(command):
         return False
 
 def run_command(command, output_file, cwd=".", env=None):
-    # return True
+    with open(output_file, 'w') as f:
+        f.write(f"Running {' '.join(command)}\n")   
+    return True
     # Get the current environment, modify it with env, or use a new environment
     if env is not None:
         # Create a copy of the current environment and update it
@@ -32,9 +35,9 @@ def run_command(command, output_file, cwd=".", env=None):
         print(f"Failed to run: {' '.join(command)}")
         return False
 
-def parse_cwpir(log_dir, num_rows, item_size):
+def parse_cwpir(log_dir, num_rows, item_size, id):
     # Open the file and read the content
-    with open(f'{log_dir}/cwpir.txt', 'r') as file:
+    with open(f'{log_dir}/cwpir/{id}.txt', 'r') as file:
         log_content = file.read()
 
     patterns = {
@@ -62,12 +65,12 @@ def parse_cwpir(log_dir, num_rows, item_size):
 
 
     # Write the extracted values to a JSON file
-    with open(f'{log_dir}/cwpir.json', 'w') as json_file:
+    with open(f'{log_dir}/cwpir/{id}.json', 'w') as json_file:
         json.dump(results, json_file, indent=4)
 
-def parse_sealpir(log_dir, num_rows, item_size):
+def parse_sealpir(log_dir, num_rows, item_size, id):
     try:
-        with open(f"{log_dir}/sealpir.txt", 'r') as f:
+        with open(f"{log_dir}/sealpir/{id}.txt", 'r') as f:
             log_data = f.read()
     except FileNotFoundError:
         return "File not found. Please check the file path."
@@ -92,20 +95,20 @@ def parse_sealpir(log_dir, num_rows, item_size):
             data_dict[field] = None
 
     # Write the extracted values to a JSON file
-    with open(f'{log_dir}/sealpir.json', 'w') as json_file:
+    with open(f'{log_dir}/sealpir/{id}.json', 'w') as json_file:
         json.dump(data_dict, json_file, indent=4)
 
-def parse_spiral(log_dir, num_rows, item_size, version="spiral"):
+def parse_spiral(log_dir, num_rows, item_size, id, version="spiral"):
 
-    log_content = json.load(open(f"{log_dir}/{version}.txt", 'r'))
+    log_content = json.load(open(f"{log_dir}/{version}/{id}.txt", 'r'))
 
     log_content["Number of items"] = num_rows
     log_content["Item size (B)"] = item_size
 
-    with open(f'{log_dir}/{version}.json', 'w') as json_file:
+    with open(f'{log_dir}/{version}/{id}.json', 'w') as json_file:
         json.dump(log_content, json_file, indent=4)
 
-    # with open(f"{log_dir}/{version}.txt", 'r') as file:
+    # with open(f"{log_dir}/{version}/{id}.txt", 'r') as file:
     #     log_content = file.read()
     
     # patterns = {
@@ -138,12 +141,12 @@ def parse_spiral(log_dir, num_rows, item_size, version="spiral"):
     #     else:
     #         results[field_name] = None
     
-    # with open(f'{log_dir}/{version}.json', 'w') as json_file:
+    # with open(f'{log_dir}/{version}/{id}.json', 'w') as json_file:
     #     json.dump(results, json_file, indent=4)
               
-def parse_fastpir(log_dir, num_rows, item_size):
+def parse_fastpir(log_dir, num_rows, item_size, id):
     # Open the file and read the content
-    with open(f'{log_dir}/fastpir.txt', 'r') as file:
+    with open(f'{log_dir}/fastpir/{id}.txt', 'r') as file:
         data = file.read()
 
     # Define the regex patterns for each item to be extracted
@@ -172,12 +175,12 @@ def parse_fastpir(log_dir, num_rows, item_size):
             extracted_values[key] = None
 
     # Write the extracted values to a JSON file
-    with open(f'{log_dir}/fastpir.json', 'w') as json_file:
+    with open(f'{log_dir}/fastpir/{id}.json', 'w') as json_file:
         json.dump(extracted_values, json_file, indent=4)
 
-def parse_onionpir(log_dir, num_rows, item_size):
+def parse_onionpir(log_dir, num_rows, item_size, id):
     # Open the file and read the content
-    with open(f'{log_dir}/onionpir.txt', 'r') as file:
+    with open(f'{log_dir}/onionpir/{id}.txt', 'r') as file:
         data = file.read()
 
     # Define the regex patterns for each item to be extracted
@@ -206,12 +209,12 @@ def parse_onionpir(log_dir, num_rows, item_size):
             extracted_values[key] = None
 
     # Write the extracted values to a JSON file
-    with open(f'{log_dir}/onionpir.json', 'w') as json_file:
+    with open(f'{log_dir}/onionpir/{id}.json', 'w') as json_file:
         json.dump(extracted_values, json_file, indent=4)
 
-def parse_rlwepir(log_dir, num_rows, item_size, version='RLWE_All_Keys'):
+def parse_rlwepir(log_dir, num_rows, item_size, id, version='RLWE_All_Keys'):
     # Open the log file and read the content
-    with open(f'{log_dir}/{version}.txt', 'r') as file:
+    with open(f'{log_dir}/{version}/{id}.txt', 'r') as file:
         data = file.read()
 
     # Define the regex patterns for each item to be extracted
@@ -240,88 +243,105 @@ def parse_rlwepir(log_dir, num_rows, item_size, version='RLWE_All_Keys'):
             extracted_values[key] = None
 
     # Write the extracted values to a JSON file
-    with open(f'{log_dir}/{version}.json', 'w') as json_file:
+    with open(f'{log_dir}/{version}/{id}.json', 'w') as json_file:
         json.dump(extracted_values, json_file, indent=4)
+
+def random_id():
+    return time.time_ns() % 1000000000
 
 def main():
     
-    # Payload size of 0 means that each protocol will the largest payload size it supports
-    for payload_byte_size in [0]:
-        for log_num_rows in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]:
-            num_rows = 2**log_num_rows
-            log_dir = f"logs/logs-{num_rows}-{payload_byte_size}"
-            
-            log_num_rows = int(math.log(num_rows, 2))
-            run_command_no_output(["mkdir", "-p", log_dir])
+    for run in range(3):
+        # Payload size of 0 means that each protocol will the largest payload size it supports
+        for payload_byte_size in [0]:
+            for log_num_rows in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]:
+                num_rows = 2**log_num_rows
+                log_dir = f"logs/logs-{num_rows}-{payload_byte_size}"
+                
+                log_num_rows = int(math.log(num_rows, 2))
+                run_command_no_output(["mkdir", "-p", log_dir])
 
-            # SealPIR
-            sealpir_payload_byte_size = 10240 if payload_byte_size == 0 else payload_byte_size
-            if run_command(["SealPIR-clone/bin/main2", str(num_rows), str(sealpir_payload_byte_size)], f"{log_dir}/sealpir.txt"):
-                parse_sealpir(log_dir, num_rows, sealpir_payload_byte_size)
-            else :
-                print("Failed to run SealPIR")
+                # SealPIR
+                run_command_no_output(["mkdir", "-p", os.path.join(log_dir, "sealpir")])
+                sealpir_payload_byte_size = 10240 if payload_byte_size == 0 else payload_byte_size
+                id = random_id()
+                if run_command(["SealPIR-clone/bin/main2", str(num_rows), str(sealpir_payload_byte_size)], f"{log_dir}/sealpir/{random_id()}.txt"):
+                    parse_sealpir(log_dir, num_rows, sealpir_payload_byte_size, id)
+                else :
+                    print("Failed to run SealPIR")
 
-            # FastPIR
-            fastpir_payload_byte_size = 10240 if payload_byte_size == 0 else payload_byte_size
-            command = ["FastPIR-clone/bin/fastpir", "-n", str(num_rows), "-s", str(fastpir_payload_byte_size)]
-            if run_command(command, f"{log_dir}/fastpir.txt"):
-                parse_fastpir(log_dir, num_rows, fastpir_payload_byte_size)
-            else:
-                print("Failed to run FastPIR")
-
-            # # Constant-weight PIR
-            # command = ["constant-weight-pir/src/build/main", f"--num_keywords={num_rows}", f"--response_bytesize={payload_byte_size}"]
-            # if run_command(command, f"{log_dir}/cwpir.txt"):
-            #     parse_cwpir(log_dir, num_rows, payload_byte_size)
-            # else:
-            #     print("Failed to run Constant-weight PIR")
-            
-            # OnionPIR
-            onionpir_payload_byte_size = 30720 if payload_byte_size == 0 else payload_byte_size
-            command = ["Onion-PIR-clone/onionpir", str(num_rows), str(onionpir_payload_byte_size)]
-            if run_command(command, f"{log_dir}/onionpir.txt"):
-                parse_onionpir(log_dir, num_rows, onionpir_payload_byte_size)
-            else:
-                print("Failed to run OnionPIR")
-
-            # Spiral Variants
-            
-            # Hacky line. Should fix it later
-            run_command_no_output(["cp", "spiral-clone/build/spiral", "spiral-clone/"])
-
-            spiral_payload_byte_size = 256*1024 if payload_byte_size == 0 else payload_byte_size
-            base_spiral_command = ["python3", "select_params.py", "--quiet", "--skip-cmake", "--skip-make", f"{log_num_rows}", f"{spiral_payload_byte_size}"]
-            for flags, name in [
-                ([], "spiral"),
-                (["--direct-upload"], "spiral-stream"),
-                (["--pack"], "spiral-pack"),
-                (["--direct-upload", "--pack"], "spiral-stream-pack")
-            ]:
-                command = base_spiral_command
-                if run_command(command+flags, f"{log_dir}/{name}.txt", cwd="spiral-clone"):
-                    parse_spiral(log_dir, num_rows, spiral_payload_byte_size, name)
+                # FastPIR
+                run_command_no_output(["mkdir", "-p", os.path.join(log_dir, "fastpir")])
+                fastpir_payload_byte_size = 10240 if payload_byte_size == 0 else payload_byte_size
+                command = ["FastPIR-clone/bin/fastpir", "-n", str(num_rows), "-s", str(fastpir_payload_byte_size)]
+                id = random_id()
+                if run_command(command, f"{log_dir}/fastpir/{id}.txt"):
+                    parse_fastpir(log_dir, num_rows, fastpir_payload_byte_size, id)
                 else:
-                    print("Failed to run Spiral")
+                    print("Failed to run FastPIR")
 
-            # RLWEPIR
-            if log_num_rows <= 16:
-                rlwe_payload_byte_size = 256*1024 if payload_byte_size == 0 else payload_byte_size
-                log2_num_rows = math.ceil(math.log2(num_rows))
-                # for mode in ["RLWE_All_Keys", "RLWE_Whispir_3_Keys", "RLWE_Whispir_2_Keys"]:
-                for mode in ["RLWE_All_Keys"]:
-                    command = [f"go", "test", "-v", "-timeout", "99999s", "./pir/...", "-run", "E2E"]
-                    env_vars = {
-                        'LOG2_NUMBER_OF_ROWS': f'{log2_num_rows}',
-                        'LOG2_NUM_DB_ROWS': f'{log2_num_rows}',
-                        'ROW_SIZE': f'{rlwe_payload_byte_size}',
-                        'MODE': f'{mode}'
-                    }
-                    if run_command(command, f"{log_dir}/{mode}.txt", cwd="private-zikade", env=env_vars):
-                        parse_rlwepir(log_dir, num_rows, rlwe_payload_byte_size, mode)
+                # # Constant-weight PIR
+                # run_command_no_output(["mkdir", "-p", os.path.join(log_dir, "cwpir")])
+                # command = ["constant-weight-pir/src/build/main", f"--num_keywords={num_rows}", f"--response_bytesize={payload_byte_size}"]
+                # id = random_id()
+                # if run_command(command, f"{log_dir}/cwpir/{id}.txt"):
+                #     parse_cwpir(log_dir, num_rows, payload_byte_size, id)
+                # else:
+                #     print("Failed to run Constant-weight PIR")
+                
+                # OnionPIR
+                run_command_no_output(["mkdir", "-p", os.path.join(log_dir, "onionpir")])
+                onionpir_payload_byte_size = 30720 if payload_byte_size == 0 else payload_byte_size
+                command = ["Onion-PIR-clone/onionpir", str(num_rows), str(onionpir_payload_byte_size)]
+                id = random_id()
+                if run_command(command, f"{log_dir}/onionpir/{id}.txt"):
+                    parse_onionpir(log_dir, num_rows, onionpir_payload_byte_size, id)
+                else:
+                    print("Failed to run OnionPIR")
+
+                # Spiral Variants
+                
+                # Hacky line. Should fix it later
+                run_command_no_output(["cp", "spiral-clone/build/spiral", "spiral-clone/"])
+
+                spiral_payload_byte_size = 256*1024 if payload_byte_size == 0 else payload_byte_size
+                base_spiral_command = ["python3", "select_params.py", "--quiet", "--skip-cmake", "--skip-make", f"{log_num_rows}", f"{spiral_payload_byte_size}"]
+                for flags, name in [
+                    ([], "spiral"),
+                    (["--direct-upload"], "spiral-stream"),
+                    (["--pack"], "spiral-pack"),
+                    (["--direct-upload", "--pack"], "spiral-stream-pack")
+                ]:
+                    run_command_no_output(["mkdir", "-p", os.path.join(log_dir, name)])
+                    command = base_spiral_command
+                    id = random_id()
+                    if run_command(command+flags, f"{log_dir}/{name}/{id}.txt", cwd="spiral-clone"):
+                        parse_spiral(log_dir, num_rows, spiral_payload_byte_size, id, name)
                     else:
-                        print(f"Failed to run {mode}")
+                        print("Failed to run Spiral")
 
-            print("Done")
+                # RLWEPIR
+                if log_num_rows <= 16:
+                    rlwe_payload_byte_size = 256*1024 if payload_byte_size == 0 else payload_byte_size
+                    log2_num_rows = math.ceil(math.log2(num_rows))
+                    # for mode in ["RLWE_All_Keys", "RLWE_Whispir_3_Keys", "RLWE_Whispir_2_Keys"]:
+                    for mode in ["RLWE_All_Keys"]:
+                        run_command_no_output(["mkdir", "-p", os.path.join(log_dir, mode)])
+
+                        command = [f"go", "test", "-v", "-timeout", "99999s", "./pir/...", "-run", "E2E"]
+                        env_vars = {
+                            'LOG2_NUMBER_OF_ROWS': f'{log2_num_rows}',
+                            'LOG2_NUM_DB_ROWS': f'{log2_num_rows}',
+                            'ROW_SIZE': f'{rlwe_payload_byte_size}',
+                            'MODE': f'{mode}'
+                        }
+                        id = random_id()
+                        if run_command(command, f"{log_dir}/{mode}/{id}.txt", cwd="private-zikade", env=env_vars):
+                            parse_rlwepir(log_dir, num_rows, rlwe_payload_byte_size, id, mode)
+                        else:
+                            print(f"Failed to run {mode}")
+
+                print(f"Done run {run}, num_rows {num_rows}, payload_byte_size {payload_byte_size}")
 
 if __name__ == "__main__":
     main()
