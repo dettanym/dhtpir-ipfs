@@ -7,18 +7,8 @@ ENV LIBS_PATH ${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y git cmake g++ make libgmp-dev wget unzip curl zip tar pkg-config git-lfs
-    
-RUN apt-get install -y software-properties-common && \
-    bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)" && \
-    apt-get update && apt-get install -y clang-12 
-
-# RUN echo 'deb http://apt.llvm.org/buster/ llvm-toolchain-buster-12 main' >> /etc/apt/sources.list.d/llvm.list \
-#     && wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-
-# RUN apt-get update && apt-get install -y clang-12 
-
-RUN rm -rf /var/lib/apt/lists/*
+    apt-get install -y git cmake g++ make libgmp-dev wget unzip clang curl zip tar pkg-config git-lfs && \
+    rm -rf /var/lib/apt/lists/*
 
 # Clone the main repository
 RUN git clone https://github.com/dettanym/dhtpir-ipfs.git ${REPO_PATH} 
