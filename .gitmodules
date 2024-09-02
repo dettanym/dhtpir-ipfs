@@ -16,3 +16,9 @@
 [submodule "spiral-clone"]
 	path = spiral-clone
 	url = https://github.com/RasoulAM/spiral-clone.git
+[submodule "ypir-clone"]
+	path = ypir-clone
+	url = https://github.com/RasoulAM/ypir-clone.git
+[submodule "hintless_pir-clone"]
+	path = hintless_pir-clone
+	url = https://github.com/RasoulAM/hintless_pir-clone.git
