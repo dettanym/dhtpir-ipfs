@@ -7,8 +7,12 @@ ENV LIBS_PATH ${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y git cmake g++ make libgmp-dev wget unzip clang curl zip tar pkg-config git-lfs && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y git cmake g++ make libgmp-dev wget unzip clang-12 curl zip tar pkg-config git-lfs gnupg apt-transport-https && \
+    curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor >bazel-archive-keyring.gpg && \
+    mv bazel-archive-keyring.gpg /usr/share/keyrings && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && \
+    apt-get update && apt-get install -y bazel && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Clone the main repository
 RUN git clone https://github.com/dettanym/dhtpir-ipfs.git ${REPO_PATH} 
@@ -134,4 +138,6 @@ RUN git clone https://github.com/dettanym/private-zikade.git && \
     git pull && \
     go build
 
-WORKDIR ${REPO_PATH}
+# WORKDIR ${REPO_PATH}
+# RUN cd hintless_pir-clone && \
+#     bazel test //...
