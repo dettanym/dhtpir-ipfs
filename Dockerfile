@@ -2,8 +2,8 @@
 FROM --platform=linux/amd64 ubuntu:latest
 
 # Define the repository location
-ENV REPO_PATH /root/dhtpir-ipfs
-ENV LIBS_PATH ${REPO_PATH}/.libs
+ENV REPO_PATH=/root/dhtpir-ipfs
+ENV LIBS_PATH=${REPO_PATH}/.libs
 
 # Install necessary dependencies
 RUN apt-get update && \
