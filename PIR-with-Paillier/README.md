@@ -1,1 +1,0 @@
-Naive implementation of 'BasicPIR' using Paillier in Python.

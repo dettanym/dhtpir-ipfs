@@ -32,39 +32,6 @@ def run_command(command, output_file, cwd=".", env=None):
         print(f"Failed to run: {' '.join(command)}")
         return False
 
-def parse_cwpir(log_dir, num_rows, item_size, id):
-    # Open the file and read the content
-    with open(f'{log_dir}/cwpir/{id}.txt', 'r') as file:
-        log_content = file.read()
-
-    patterns = {
-        'Poly Mod Degree' : r'Poly Mod Degree:\s+(\d+)',
-        'Number of Keywords' : r'Number of Keywords:\s+(\d+)',
-        'Hamming Weight' : r'Hamming Weight:\s+(\d+)',
-        'Database Prep (ms)' : r'Database Prep\s+:\s+(\d+)',
-        'Total Server (ms)' : r'Total Server\s+:\s+(\d+)',
-        'Data Independant KB (Relin keys)' : r'Data Independant:\s+(\d+) KB \(Relin keys\)',
-        'Data Independant KB (Gal Keys)' : r'Data Independant:.+\+ (\d+) KB \(Gal Keys\)',
-        'Data Dependant KB (Query)' : r'Data Dependant: (\d+) KB \(Query\)',
-        'Data Dependant KB (Reponse)' : r'Data Dependant:.+\+ (\d+) KB \(Reponse\)',
-    }
-
-    results = {
-        "Number of items": num_rows,
-        "Item size (B)": item_size,
-    }
-    for field_name, pattern in patterns.items():
-        match = re.search(pattern, log_content, re.DOTALL)
-        if match:
-            results[field_name] = int(match.group(1))
-        else:
-            results[field_name] = None
-
-
-    # Write the extracted values to a JSON file
-    with open(f'{log_dir}/cwpir/{id}.json', 'w') as json_file:
-        json.dump(results, json_file, indent=4)
-
 def parse_sealpir(log_dir, num_rows, item_size, id):
     try:
         with open(f"{log_dir}/sealpir/{id}.txt", 'r') as f:
@@ -276,15 +243,6 @@ def main():
                     parse_fastpir(log_dir, num_rows, fastpir_payload_byte_size, id)
                 else:
                     print("Failed to run FastPIR")
-
-                # # Constant-weight PIR
-                # run_command_no_output(["mkdir", "-p", os.path.join(log_dir, "cwpir")])
-                # command = ["constant-weight-pir/src/build/main", f"--num_keywords={num_rows}", f"--response_bytesize={payload_byte_size}"]
-                # id = random_id()
-                # if run_command(command, f"{log_dir}/cwpir/{id}.txt"):
-                #     parse_cwpir(log_dir, num_rows, payload_byte_size, id)
-                # else:
-                #     print("Failed to run Constant-weight PIR")
                 
                 # OnionPIR
                 run_command_no_output(["mkdir", "-p", os.path.join(log_dir, "onionpir")])
